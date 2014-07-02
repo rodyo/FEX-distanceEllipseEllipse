@@ -145,7 +145,7 @@ line([p1(1) p2(1)]',[p1(2) p2(2)]','color', 'k')
             for jj = 1:2
 
                 % find optimal point on the other ellipse
-                s = R{jj}\(wt{3-jj} - c{jj});  % transform current point
+                s = R{jj}.'*(wt{3-jj} - c{jj});% transform current point
                 A = a(jj)*s(1);                % The constants A,B and C follow from the
                 B = b(jj)*s(2);                %   condition dQ/dt = 0, with Q = Q(s,E,t) the
                 C = b(jj)^2 - a(jj)^2;         %   XY-distance between point s and ellipse E
