@@ -78,9 +78,9 @@ line([p1(1) p2(1)]',[p1(2) p2(2)]','color', 'k')
     
 
     % algorithm parameters    
-    maxiters = 250;
-    tolFun   = 1e-16; % tolerance on distance-squared
-    tolX     = 1e-8;  % tolerance on anomaly
+    maxiters = 25;
+    tolFun   = 1e-12; % == (1e6)^2, tolerance on distance-squared
+    tolX     = 1e-6;  % tolerance on anomaly
     
     % error traps
     assert(isvector(a) && isvector(b) && numel(a)==2 && numel(b)==2,...
@@ -136,18 +136,8 @@ line([p1(1) p2(1)]',[p1(2) p2(2)]','color', 'k')
             
             iterations = iterations + 1;
             if (iterations >= maxiters)
-                if (ii < numel(f0))
-                    warning('distanceEllipseEllipse:maxiters_exceeded',...
-                        ['Maximum number of iterations was exceeded. \n',...
-                        'Continuing with the next initial value...'])
-                else
-                    warning('distanceEllipseEllipse:maxiters_exceeded',...
-                        ['Maximum number of iterations was exceeded, and \n',...
-                        'all initial estimates have been exhausted. Exiting...'])
-                end
-                break
-            end
-            
+                f0(ii) = NaN; break; end
+                        
             % save previous t_hat
             t_hatp = t_hat;
 
@@ -205,7 +195,13 @@ line([p1(1) p2(1)]',[p1(2) p2(2)]','color', 'k')
                (abs(dmin2-dmin2p) <= tolFun) || ... % diff. between two consecutive distances is smaller than TolFun
                 all(abs(t_hatp-t_hat) <= tolX);     % diff. between two consecutive true anomalies is smaller than TolFun
                        
-        end % algorithm while-loop 
+        end % algorithm while-loop
+        
+        if all(isnan(f0))            
+            warning('distanceEllipseEllipse:maxiters_exceeded',...
+                ['Maximum number of iterations was exceeded for all initial estimates; ',...
+                'results may not be accurate.']);            
+        end
         
         % compute the real distance. If this is less than the stored value,
         % replace all corresponding entries
