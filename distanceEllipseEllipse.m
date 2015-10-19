@@ -56,21 +56,23 @@ u = {[1,0,0], [1,0,0]}; % both oriented in XY-plane
 v = {[0,1,0], [0,1,0]}; % to visualize them more easily
 
 % plot the ellipses
+u  = cellfun(@(x)x./norm(x), u, 'UniformOutput', false);
+v  = cellfun(@(x)x./norm(x), v, 'UniformOutput', false);
 f  = linspace(0,2*pi,100);
 E1 = a(1)*u{1}'*cos(f) + b(1)*v{1}'*sin(f) + repmat(c{1}',1,numel(f));
 E2 = a(2)*u{2}'*cos(f) + b(2)*v{2}'*sin(f) + repmat(c{2}',1,numel(f));
-figure, hold on
+figure(1), clf, hold on
 plot(E1(1,:),E1(2,:),'r', E2(1,:),E2(2,:),'b')
 axis equal
 
 % run routine
 [min_dist, fp_min, fs_min] = ...
-    distanceEllipseEllipse(a,b,c,u,v)
+    distanceEllipseEllipse(a,b,c,u,v);
 
 % plot the minimum distance returned
 p1 = a(1)*u{1}'*cos(fp_min) + b(1)*v{1}'*sin(fp_min) + c{1}';
 p2 = a(2)*u{2}'*cos(fs_min) + b(2)*v{2}'*sin(fs_min) + c{2}';
-line([p1(1) p2(1)]',[p1(2) p2(2)]','color', 'k')
+line([p1(1) p2(1)]', [p1(2) p2(2)]', 'color', 'k')
 %}
 
 % If you find this work useful, please consider a donation:
@@ -84,29 +86,32 @@ line([p1(1) p2(1)]',[p1(2) p2(2)]','color', 'k')
     
     % error traps
     assert(isvector(a) && isvector(b) && numel(a)==2 && numel(b)==2,...
-        'distanceEllipseEllipse:ab_not_2Dvectors',...
+        [mfilename ':ab_not_2Dvectors'],...
         'Semi major and minor axes ''%s'' and ''%s'' must be 2-element vectors.',...
         inputname(1), inputname(2));
     assert(iscell(c) && numel(c)==2 && all(cellfun('prodofsize',c)==3),...
-        'distanceEllipseEllipse:c_not_cell_or_3Dvector',...
+        [mfilename ':c_not_cell_or_3Dvector'],...
         ['Coordinates of the ellipse-centers ''%s'' must be given as \n',...
         'two 3-D vectors in a cell-array.'], inputname(3));    
     assert(iscell(u) && numel(u)==2 && all(cellfun('prodofsize',u)==3),...
-        'distanceEllipseEllipse:u_not_cell_or_3Dvector',...
+        [mfilename ':u_not_cell_or_3Dvector'],...
         ['Primary axes ''%s'' of both ellipses must be given as \n',...
         'two 3-D unit-vectors in a cell-array.'], inputname(4));    
     assert(iscell(v) && numel(v)==2 && all(cellfun('prodofsize',v)==3),...
-        'distanceEllipseEllipse:v_not_cell_or_3Dvector',...
+        [mfilename ':v_not_cell_or_3Dvector'],...
         ['Secondary axes ''%s'' of both ellipses must be given as \n',...
         'two 3-D unit-vectors in a cell-array.'], inputname(5))
+    assert(all( cellfun(@(x,y) x(:)'*y(:) <= 3*eps(max([x(:); y(:)])), u,v) ),...
+        [mfilename ':u_v_not_perpendicular'],...
+        'Primary and secondary axes must be perpendicular to each other.');
         
     % make sure everything is correct shape & size
     c{1} = c{1}(:); u{1} = u{1}(:); v{1} = v{1}(:);
     c{2} = c{2}(:); u{2} = u{2}(:); v{2} = v{2}(:);
     
     % make sure [u] and [v] are UNIT-vectors
-    u{1} = u{1}/norm(u{1});   u{2} = u{2}/norm(u{2});
-    v{1} = v{1}/norm(v{1});   v{2} = v{2}/norm(v{2});
+    u = cellfun(@(x)x./norm(x), u, 'UniformOutput', false);
+    v = cellfun(@(x)x./norm(x), v, 'UniformOutput', false);
         
     % initialize some variables to speed up computation
     R{1}  = [u{1}, v{1}, cross(u{1},v{1})]; % rotation matrix to put ellipse in standard form
